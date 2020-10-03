@@ -25,10 +25,13 @@
 .hour-of-the-day{
     float:left;
     border: 1px slide black;
-    font-size: x-small;
+    /* font-size: x-small; */
 }
 .time-suffix{
-    font-size:x-small;
+    /* font-size:x-small; */
+}
+.weather-icon{
+    float:right;
 }
 .event-for-the-day{
     width: 100%;

@@ -1,13 +1,18 @@
 // We want to be able to schedule events in the future and look at past events,
 // so currentUIDate tracks which date we're looking at on the screen
 var currentUIDate=moment();
-
+var hourlyForecast=[];
+var startTime=9;
+var endTime=17; // Only display hours between 9 and 5pm.
+var currentCoords;
+var locationHasBeenSet=false;
 function init(){
 //     console.log(currentUIDate.format("X"));
 //     console.log(moment(currentUIDate, "M"));
-    
-    setUpBlocks(9,17,currentUIDate);
-
+    $("#current-date").text(moment().format("dddd, [the] Do of MMMM, YYYY"));
+    $( "#datepicker" ).datepicker();
+    setUpBlocks(startTime,endTime,currentUIDate);
+    getCurrentLocation();
 }
 
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
@@ -61,9 +66,13 @@ function populateEventText(timeOfDay, thisDate){
         $("#"+eventID).val(storedEvent);
     }
     var currentHour=moment().format("HH");
+
     if(timeOfDay>currentHour) $("#"+eventID).addClass("future");
-    else if(timeOfDay===currentHour) $("#"+eventID).addClass("present");
+    else if(timeOfDay==currentHour) $("#"+eventID).addClass("present");
     else $("#"+eventID).addClass("past");
+
+
+    //https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20130808 15:00&end_date=20130808 15:06&station=8454000&product=water_temperature&units=english&time_zone=gmt&application=ports_screen&format=json
 }
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 // _-=                                                       -_
@@ -77,11 +86,12 @@ function newTimeBlock(displayTime,timeOfDay, thisDate){
     // console.log(displayTime);
     var eventID=timeOfDay+"-"+thisDate.format("YYYYMMDD"); 
     var newBlock=$("<div>").addClass("row time-block-row");
-    newBlock.append(($("<div>")).addClass("col-1 time-of-day"));
+    newBlock.append(($("<div>")).addClass("col-2 time-of-day"));
     newBlock.find('.time-of-day').append($("<div>").addClass("hour-of-the-day").html(displayTime));
+    newBlock.find('.time-of-day').attr("id",timeOfDay+"-column");
 
     
-    newBlock.append(($("<div>")).addClass("col-10 event-column"));
+    newBlock.append(($("<div>")).addClass("col-9 event-column"));
     newBlock.find('.event-column').append($("<input>").addClass('event-for-the-day'));
     newBlock.find(".event-for-the-day").attr("id",eventID);
 
@@ -120,4 +130,92 @@ function retrieveEvent(eventID){
     var storedEvent=localStorage.getItem(eventID);
     if(storedEvent===null) return false;
     else return storedEvent;
+}
+
+
+
+function getCurrentLocation(){
+    if(!locationHasBeenSet)
+        window.navigator.geolocation.getCurrentPosition(getWeatherData);
+
+    else getWeatherData(currentCoords)
+   
+}
+
+
+
+
+function getWeatherData(currentLoc){
+    currentCoords=currentLoc.coords;
+    var lat=currentCoords.latitude;
+    var long=currentCoords.longitude;
+    var thisDate=currentUIDate.format("YYYY-MM-DD");
+    alert(thisDate);
+    var settings = {
+        "async": true,
+        "crossDomain": true,
+        "url": "https://dark-sky.p.rapidapi.com/"+lat+","+long+","+thisDate+"T00:00:00",
+        "method": "GET",
+        "headers": {
+            "x-rapidapi-host": "dark-sky.p.rapidapi.com",
+            "x-rapidapi-key": "909e0f1418msh1a142d822320fdap16d810jsn438f2eea02e2"
+        }
+    }
+    
+    $.ajax(settings).done(function (response) {
+        displayWeatherData(response);
+    });
+
+}
+var _rep;
+
+function displayWeatherData(response){
+    _rep=response;
+    hourlyForecast=_rep.hourly.data;
+
+
+    for(var i=startTime-1;i<endTime;i++){
+        switch(hourlyForecast[i].icon){
+            case "clear-day":{
+                fontAwesomeTxt="fas fa-umbrella";
+                break;
+            }
+            case "partly-cloudy-day":{
+                fontAwesomeTxt="fas fa-sun";
+                break;
+            }
+            case "cloudy":{
+                fontAwesomeTxt="fas fa-cloud";
+                break;
+            }
+            case "rain":{
+                fontAwesomeTxt="fas fa-umbrella";
+                break;
+            }
+            case "sleet":{
+                fontAwesomeTxt="fas fa-cloud-hail";
+                break;
+            }
+            case "snow":{
+                fontAwesomeTxt="fas fa-snowflake";
+                break;
+            }
+            case "wind":{
+                fontAwesomeTxt="fas fa-wind";
+                break;
+            }
+            case "fog":{
+                fontAwesomeTxt="fas fa-fog";
+                break;
+            }
+            default:{
+                fontAwesomeTxt="fas fa-question-circle";
+                break;
+            }
+        }           
+        var icon=$("<div>").html('<i class="'+fontAwesomeTxt+'"></i>');
+        icon.addClass("weather-icon");
+        $("#"+(i+1)+"-column").append(icon);
+        
+    }
 }
