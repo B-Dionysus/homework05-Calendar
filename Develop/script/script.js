@@ -9,7 +9,7 @@ var locationHasBeenSet=false;
 function init(){
 //     console.log(currentUIDate.format("X"));
 //     console.log(moment(currentUIDate, "M"));
-    $("#current-date").text(moment().format("dddd, [the] Do of MMMM, YYYY"));
+    $("#current-date").text(currentUIDate.format("dddd, [the] Do of MMMM, YYYY"));
     $( "#datepicker" ).datepicker();
     setUpBlocks(startTime,endTime,currentUIDate);
     getCurrentLocation();
@@ -70,9 +70,6 @@ function populateEventText(timeOfDay, thisDate){
     if(timeOfDay>currentHour) $("#"+eventID).addClass("future");
     else if(timeOfDay==currentHour) $("#"+eventID).addClass("present");
     else $("#"+eventID).addClass("past");
-
-
-    //https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=20130808 15:00&end_date=20130808 15:06&station=8454000&product=water_temperature&units=english&time_zone=gmt&application=ports_screen&format=json
 }
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 // _-=                                                       -_
@@ -88,23 +85,22 @@ function newTimeBlock(displayTime,timeOfDay, thisDate){
     var newBlock=$("<div>").addClass("row time-block-row");
     newBlock.append(($("<div>")).addClass("col-2 time-of-day"));
     newBlock.find('.time-of-day').append($("<div>").addClass("hour-of-the-day").html(displayTime));
-    newBlock.find('.time-of-day').attr("id",timeOfDay+"-column");
-
-    
+    newBlock.find('.time-of-day').attr("id",timeOfDay+"-column");    
     newBlock.append(($("<div>")).addClass("col-9 event-column"));
     newBlock.find('.event-column').append($("<input>").addClass('event-for-the-day'));
     newBlock.find(".event-for-the-day").attr("id",eventID);
-
-    
-    var storedEvent;
-    
-
-    
     newBlock.append(($("<div>")).addClass("col-1 save-column"));
     newBlock.find('.save-column').append($("<button>").addClass('save-event').html('<i class="far fa-save"></i>'));
     newBlock.find('.save-event').on("click",function(){addCalendarEvent(eventID)});
-    // console.log(newBlock);
     return newBlock;
+}
+function changeCurrentDate(delta){
+    if(delta==="reset") currentUIDate=moment();
+    else {
+        currentUIDate=currentUIDate.add(delta,'day');
+    }
+    $("#time-block-section").html("");
+    init();
 }
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 // _-=                                                       -_
@@ -131,9 +127,6 @@ function retrieveEvent(eventID){
     if(storedEvent===null) return false;
     else return storedEvent;
 }
-
-
-
 function getCurrentLocation(){
     if(!locationHasBeenSet)
         window.navigator.geolocation.getCurrentPosition(getWeatherData);
@@ -141,16 +134,12 @@ function getCurrentLocation(){
     else getWeatherData(currentCoords)
    
 }
-
-
-
-
 function getWeatherData(currentLoc){
-    currentCoords=currentLoc.coords;
-    var lat=currentCoords.latitude;
-    var long=currentCoords.longitude;
+    currentCoords=currentLoc;
+    locationHasBeenSet=true;
+    var lat=currentCoords.coords.latitude;
+    var long=currentCoords.coords.longitude;
     var thisDate=currentUIDate.format("YYYY-MM-DD");
-    alert(thisDate);
     var settings = {
         "async": true,
         "crossDomain": true,
@@ -160,14 +149,12 @@ function getWeatherData(currentLoc){
             "x-rapidapi-host": "dark-sky.p.rapidapi.com",
             "x-rapidapi-key": "909e0f1418msh1a142d822320fdap16d810jsn438f2eea02e2"
         }
-    }
-    
+    }    
     $.ajax(settings).done(function (response) {
         displayWeatherData(response);
     });
 
 }
-var _rep;
 
 function displayWeatherData(response){
     _rep=response;
@@ -177,11 +164,11 @@ function displayWeatherData(response){
     for(var i=startTime-1;i<endTime;i++){
         switch(hourlyForecast[i].icon){
             case "clear-day":{
-                fontAwesomeTxt="fas fa-umbrella";
+                fontAwesomeTxt="fas fa-sun";
                 break;
             }
             case "partly-cloudy-day":{
-                fontAwesomeTxt="fas fa-sun";
+                fontAwesomeTxt="fas fa-cloud-sun";
                 break;
             }
             case "cloudy":{
