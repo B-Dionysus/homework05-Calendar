@@ -3,6 +3,13 @@
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
 }
+.time-block-row{
+    border:1px solid black;
+    margin-left:0;
+    margin-right:0;
+    width:100%;
+}
+
 .save-event{
     float:right;
     width:100%;
@@ -10,7 +17,7 @@
     border-bottom-right-radius: 13px;
 }
 .save-column{
-    padding-left:0;
+    padding:0;
 }
 .event-column{
     padding-right:0;
@@ -18,7 +25,20 @@
 .hour-of-the-day{
     float:left;
     border: 1px slide black;
+    font-size: x-small;
+}
+.time-suffix{
+    font-size:x-small;
 }
 .event-for-the-day{
     width: 100%;
+}
+.past{
+    background-color: lightslategray;
+}
+.present{
+    background-color: lightpink;
+}
+.future{
+    background-color: lightgreen;
 }
