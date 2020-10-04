@@ -6,6 +6,7 @@ var startTime=9;
 var endTime=17; // Only display hours between 9 and 5pm.
 var currentCoords;
 var locationHasBeenSet=false;
+const DISABLE_API=true;
 function init(){
 //     console.log(currentUIDate.format("X"));
 //     console.log(moment(currentUIDate, "M"));
@@ -67,9 +68,15 @@ function populateEventText(timeOfDay, thisDate){
     }
     var currentHour=moment().format("HH");
 
-    if(timeOfDay>currentHour) $("#"+eventID).addClass("future");
-    else if(timeOfDay==currentHour) $("#"+eventID).addClass("present");
-    else $("#"+eventID).addClass("past");
+    if(moment(currentUIDate.format("YYYY-MM-DD")).isBefore(moment(moment().format("YYYY-MM-DD"))))
+        $("#"+eventID).addClass("past");
+    else if(moment(currentUIDate.format("YYYY-MM-DD")).isAfter(moment(moment().format("YYYY-MM-DD"))))
+        $("#"+eventID).addClass("future");
+    else{
+        if(timeOfDay>currentHour) $("#"+eventID).addClass("future");
+        else if(timeOfDay==currentHour) $("#"+eventID).addClass("present");
+        else $("#"+eventID).addClass("past");
+    }
 }
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 // _-=                                                       -_
@@ -128,11 +135,12 @@ function retrieveEvent(eventID){
     else return storedEvent;
 }
 function getCurrentLocation(){
-    if(!locationHasBeenSet)
-        window.navigator.geolocation.getCurrentPosition(getWeatherData);
+    if(!DISABLE_API){
+        if(!locationHasBeenSet)
+            window.navigator.geolocation.getCurrentPosition(getWeatherData);
 
-    else getWeatherData(currentCoords)
-   
+        else getWeatherData(currentCoords)
+    }
 }
 function getWeatherData(currentLoc){
     currentCoords=currentLoc;

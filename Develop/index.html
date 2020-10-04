@@ -35,27 +35,29 @@
 </head>
 <body onload="init();">
     <header >
-      <h2 class="display-3">Work Day Scheduler</h2>
-      <p class="lead">Because it's 2020 and what day is it anyway?</p>
-      <div class="row margin-auto">
-        <div class="col-3">
-          <button onclick="changeCurrentDate(-1);"><i class="fas fa-chevron-left"></i></button>          
-        </div>
-        <div class="col-6" id='current-day-display'>
-          <div class="container">
-            <div class="row">
-              <button onclick="changeCurrentDate('reset');">Reset Date</button>
-            </div>
-            <div class="row"><h4 id="current-date">Date</h4></div>
-            <div class="row">
-              <input type="text" id="datepicker"> 
+      <div class="container text-center">
+        <h2 class="display-3">Work Day Scheduler</h2>
+        <p class="lead">Because it's 2020 and what day is it anyway?</p>
+        <div class="row margin-auto">
+          <div class="col-3"></div>
+          <div class="col-6" id='current-day-display'>
+            <div class="container-fluid m-auto">
+              <div class="row">
+                <div class="col-4"><button onclick="changeCurrentDate(-1);"><i class="fas fa-chevron-left"></i></button></div>    
+                <div class="col-4"><button onclick="changeCurrentDate('reset');">Reset Date</button></div>
+                <div class="col-4"><button onclick="changeCurrentDate(1);"><i class="fas fa-chevron-right"></i></button></div>
+              </div>
+              <div class="row">      
+                <div class="col"><h4 id="current-date">Date</h4></div>
+              </div>
+              <div class="row">
+                <input type="text" id="datepicker" class="m-auto"> 
+              </div>
             </div>
           </div>
+          <div class="col-3"></div>
         </div>
-        <div class="col-3">
-          <button onclick="changeCurrentDate(1);"><i class="fas fa-chevron-right"></i></button>          
-        </div>
-      </div>
+      </div>  
     </header>
     <div class="container" id="calendar">
       <!-- Timeblocks go here -->
