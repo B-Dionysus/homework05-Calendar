@@ -24,7 +24,6 @@ $("body").ready(init);
 function init(){
     // If we haven't set the datepicker yet, add it now    
      if($("#datepicker").hasClass("hasDatepicker")===false){
-         console.log("Make a new datepicker");
         $( "#datepicker" ).datepicker().on("change.dp",goToNewDate);
         $("#datepicker").datepicker("option","dateFormat","yy-mm-dd");
      }   
