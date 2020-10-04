@@ -13,7 +13,7 @@ $("body").ready(init);
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 // _-=                                                       -_
 // _-=      init()                                           -_
-// _-=      Called when <body> has loaded, and also every    -_
+// _-=      Called when <body> has loaded, and also every time_
 // _-=      we change the date in the UI.                    -_
 // _-=      We set the main date display, the datepicker (if -_
 // _-=      needed), build our calendar UI, and launch the   -_
@@ -22,11 +22,17 @@ $("body").ready(init);
 // _-=                                                       -_
 // _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function init(){
-    // If we haven't set the datepicker yet, addit now
-    if($("#datepicker").hasClass("hasDatepicker")===false)   $( "#datepicker" ).datepicker();
-
+    // If we haven't set the datepicker yet, add it now    
+     if($("#datepicker").hasClass("hasDatepicker")===false){
+         console.log("Make a new datepicker");
+        $( "#datepicker" ).datepicker().on("change.dp",goToNewDate);
+        $("#datepicker").datepicker("option","dateFormat","yy-mm-dd");
+     }   
     if(localStorage.getItem("APICalls")>=MAX_API_CALLS) DISABLE_API=true;
     $("#current-date").text(currentUIDate.format("dddd, [the] Do of MMMM, YYYY"));
+    // We might want to schedule things earlier (maybe?) or later (definitely!) on the weekends!
+    if(currentUIDate.format("dddd")=="Saturday" || currentUIDate.format("dddd")=="Sunday"){ startTime=8; endTime=19;}
+    else { startTime=9; endTime=17};
     setUpBlocks(startTime,endTime,currentUIDate);
     getCurrentLocation();
 }
@@ -116,11 +122,32 @@ function newTimeBlock(displayTime,timeOfDay, thisDate){
     newBlock.find('.save-event').on("click",function(){addCalendarEvent(eventID)});
     return newBlock;
 }
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=     changeCurrentDate()                               -_
+// _-=      Advance or subtract the currentUIDate, remove the-_
+// _-=      time-blocks, and call init() again               -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function changeCurrentDate(delta){
     if(delta==="reset") currentUIDate=moment();
     else {
         currentUIDate=currentUIDate.add(delta,'day');
     }
+    $("#time-block-section").html("");
+    init();
+}
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=     goToNewDate()                                     -_
+// _-=      Update currentUIDate to match the datepicker     -_
+// _-=      remove the time-blocks, and call init() again    -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+function goToNewDate(dateInput){
+    console.log($("#datepicker").val());
+    currentUIDate=moment($("#datepicker").val());
+    
     $("#time-block-section").html("");
     init();
 }
@@ -169,6 +196,13 @@ function getCurrentLocation(){
         window.navigator.geolocation.getCurrentPosition(processLocation);
     else getWeatherData();
 }
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=     processLocation()                                 -_
+// _-=     Takes the data from getCurrentPosition and stores -_
+// _-=     it iin localStorage                               -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function processLocation(pos){
 
     lat=pos.coords.latitude;
@@ -179,6 +213,13 @@ function processLocation(pos){
     getWeatherData();
 
 }
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=      getWeatherData()                                 -_
+// _-=      Make API call to Dark Skies and calls            -_
+// _-=      displayWeatherData() when successful             -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function getWeatherData(){
     if(DISABLE_API) return;
     else{
@@ -198,6 +239,13 @@ function getWeatherData(){
         });
     }
 }
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=        displayWeatherData()                           -_
+// _-=        Adds the appropriate Font Awesome icon to every-_
+// _-=        time-block based on the weather results.       -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function displayWeatherData(response){
     var calls=localStorage.getItem("APICalls");
     calls++;
@@ -247,7 +295,7 @@ function displayWeatherData(response){
             }
         }           
         var icon=$("<div>").html('<i class="'+fontAwesomeTxt+'"></i>');
-        icon.addClass("weather-icon");
+        icon.addClass("weather-icon "+hourlyForecast[i].icon);
         $("#"+(i+1)+"-column").append(icon);
         
     }

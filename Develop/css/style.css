@@ -50,3 +50,8 @@
 .future{
     background-color: lightgreen;
 }
+
+/* DatePicker Styling */
+.my-datepicker{
+    background-color: lightgray;
+}
