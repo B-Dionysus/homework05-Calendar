@@ -4,14 +4,29 @@ var currentUIDate=moment();
 var hourlyForecast=[];
 var startTime=9;
 var endTime=17; // Only display hours between 9 and 5pm.
-var currentCoords;
-var locationHasBeenSet=false;
-const DISABLE_API=true;
+var lat;
+var long;
+var DISABLE_API=false;
+const MAX_API_CALLS=5000;   // I have to ay $.001 every time we make an API call, so I just don't want it to get out of hand, you know?
+
+$("body").ready(init);
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
+// _-=                                                       -_
+// _-=      init()                                           -_
+// _-=      Called when <body> has loaded, and also every    -_
+// _-=      we change the date in the UI.                    -_
+// _-=      We set the main date display, the datepicker (if -_
+// _-=      needed), build our calendar UI, and launch the   -_
+// _-=      getCurrentLocation(), which then also get the    -_
+// _-=      weather data from Dark Skies.                    -_
+// _-=                                                       -_
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-_
 function init(){
-//     console.log(currentUIDate.format("X"));
-//     console.log(moment(currentUIDate, "M"));
+    // If we haven't set the datepicker yet, addit now
+    if($("#datepicker").hasClass("hasDatepicker")===false)   $( "#datepicker" ).datepicker();
+
+    if(localStorage.getItem("APICalls")>=MAX_API_CALLS) DISABLE_API=true;
     $("#current-date").text(currentUIDate.format("dddd, [the] Do of MMMM, YYYY"));
-    $( "#datepicker" ).datepicker();
     setUpBlocks(startTime,endTime,currentUIDate);
     getCurrentLocation();
 }
@@ -134,37 +149,60 @@ function retrieveEvent(eventID){
     if(storedEvent===null) return false;
     else return storedEvent;
 }
-function getCurrentLocation(){
-    if(!DISABLE_API){
-        if(!locationHasBeenSet)
-            window.navigator.geolocation.getCurrentPosition(getWeatherData);
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='
+// _-=                                                         _-='`
+// _-=  getCurrentLocation()                                    -='`
+// _-=  Retrieves the geolocation data previously stored in the -='`
+// _-=  user's computer. If it isn't there, we call             -='`
+// _-=  processLocation to add init. If it is there, we can skip-='`
+// _-=  that step and go straight to getWeatherData()           -='`
+// _-=  **Note that this is a terrible idea for mobile apps!**  -='`
+// _-=  But for a desktop-centric userbase, we can assume that  -='`
+// _-=  they'll be logging in from the same location every time.-='`    
+// _-=                                                         _-='`
+// _-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='``'=-__-='
 
-        else getWeatherData(currentCoords)
+function getCurrentLocation(){
+    lat=localStorage.getItem("lat");
+    long=localStorage.getItem("long");
+    if(!lat || !long)
+        window.navigator.geolocation.getCurrentPosition(processLocation);
+    else getWeatherData();
+}
+function processLocation(pos){
+
+    lat=pos.coords.latitude;
+    long=pos.coords.longitude;
+    localStorage.setItem("lat",lat);
+    localStorage.setItem("long",long);
+
+    getWeatherData();
+
+}
+function getWeatherData(){
+    if(DISABLE_API) return;
+    else{
+        var thisDate=currentUIDate.format("YYYY-MM-DD");
+        var settings = {
+            "async": true,
+            "crossDomain": true,
+            "url": "https://dark-sky.p.rapidapi.com/"+lat+","+long+","+thisDate+"T00:00:00",
+            "method": "GET",
+            "headers": {
+                "x-rapidapi-host": "dark-sky.p.rapidapi.com",
+                "x-rapidapi-key": "909e0f1418msh1a142d822320fdap16d810jsn438f2eea02e2"
+            }
+        }    
+        $.ajax(settings).done(function (response) {
+            displayWeatherData(response);
+        });
     }
 }
-function getWeatherData(currentLoc){
-    currentCoords=currentLoc;
-    locationHasBeenSet=true;
-    var lat=currentCoords.coords.latitude;
-    var long=currentCoords.coords.longitude;
-    var thisDate=currentUIDate.format("YYYY-MM-DD");
-    var settings = {
-        "async": true,
-        "crossDomain": true,
-        "url": "https://dark-sky.p.rapidapi.com/"+lat+","+long+","+thisDate+"T00:00:00",
-        "method": "GET",
-        "headers": {
-            "x-rapidapi-host": "dark-sky.p.rapidapi.com",
-            "x-rapidapi-key": "909e0f1418msh1a142d822320fdap16d810jsn438f2eea02e2"
-        }
-    }    
-    $.ajax(settings).done(function (response) {
-        displayWeatherData(response);
-    });
-
-}
-
 function displayWeatherData(response){
+    var calls=localStorage.getItem("APICalls");
+    calls++;
+    localStorage.setItem("APICalls", calls);
+    if(calls>=MAX_API_CALLS) DISABLE_API=true;
     _rep=response;
     hourlyForecast=_rep.hourly.data;
 
