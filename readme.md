@@ -10,7 +10,7 @@ The rows are color-coded grey for times in the past, green for times in the futu
 
 
 # Known Bugs / ToDos
-* Ok, I thought I had a clever way to hide my API key, but obviously there's no way that could have worked. <sigh>
+* Ok, I thought I had a clever way to hide my API key, but obviously there's no way that could have worked. <sigh> You can save aPI keys as environment variables on gitHub, but getting them into vanilla javascript is beyond me at this point. I just included data for October 17th in Chicago as a way of faking what it would look like. ):
 * Moment is offically legacy, and moment itself recommends using alternatives instead. A future version of this aite would probably use eithe rLuxon or Day.js instead--lighter alternatives that are less than nine years old.
 (https://momentjs.com/docs/#/-project-status/recommendations/)
 * moment() prefers dates in the ISO format year-month-day. Datepicker is capable of providing that, but it's ugly for humans to read (we'd prefer to see month, day, year). However, judging from this conversation, rolling my own conversion is outside the scope of this project:
