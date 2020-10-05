@@ -230,7 +230,7 @@ function getWeatherData(){
             "method": "GET",
             "headers": {
                 "x-rapidapi-host": "dark-sky.p.rapidapi.com",
-                "x-rapidapi-key": "909e0f1418msh1a142d822320fdap16d810jsn438f2eea02e2"
+                "x-rapidapi-key": darkSkyAPIKey
             }
         }    
         $.ajax(settings).done(function (response) {
